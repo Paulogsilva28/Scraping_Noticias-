@@ -3,49 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Principal</title>
+    <title>Notícias Rasparadas da Globo.com</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        main {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: 20px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #cc0000; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        button:hover { background-color: #0056b3; }
+        #resultados { margin-top: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
+        .noticia { padding: 10px; border-bottom: 1px dashed #eee; }
+        .noticia:last-child { border-bottom: none; }
+        .loading { color: #555; font-style: italic; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Scrapping Noticias</h1>
-    </header>
+
+    <h1>📰 Títulos de Notícias</h1>
+    <p>Clique no botão para buscar os títulos via API Python (Flask) rodando na porta 5000.</p>
     
-    <main>
-        <h2>Conteúdo Principal</h2>
-        <p>Adicione seu conteúdo aqui.</p>
-    </main>
+    <button onclick="buscarNoticias()">Carregar Notícias</button>
     
-    <footer>
-        <p>&copy; 2025. Todos os direitos reservados.</p>
-    </footer>
+    <div id="resultados">
+        <p class="loading">Clique no botão para carregar.</p>
+    </div>
+
+    <script>
+        // O endereço da nossa API Flask
+        const API_URL = 'http://127.0.0.1:5000/api/noticias';
+        const resultadosDiv = document.getElementById('resultados');
+
+        async function buscarNoticias() {
+            resultadosDiv.innerHTML = '<p class="loading">Carregando dados da API Flask...</p>';
+            
+            try {
+                // 1. Faz a requisição HTTP (GET) para a API Flask
+                const response = await fetch(API_URL);
+                
+                // 2. Converte a resposta para JSON
+                const data = await response.json();
+
+                // 3. Limpa a área de resultados
+                resultadosDiv.innerHTML = ''; 
+
+                if (response.ok) {
+                    // Verifica se a resposta foi bem-sucedida (status 200)
+                    
+                    if (data.length === 0) {
+                         resultadosDiv.innerHTML = '<p class="loading">Nenhum título encontrado.</p>';
+                    } else {
+                        // 4. Itera sobre a lista de notícias e exibe na tela
+                        data.forEach(noticia => {
+                            const p = document.createElement('p');
+                            p.className = 'noticia';
+                            p.textContent = noticia.titulo;
+                            resultadosDiv.appendChild(p);
+                        });
+                    }
+                } else {
+                    // Caso a API retorne um erro (ex: 500)
+                    resultadosDiv.innerHTML = `<p style="color: red;">ERRO da API: ${data.erro || 'Erro desconhecido.'}</p>`;
+                }
+
+            } catch (error) {
+                // Caso haja um erro de rede ou conexão
+                resultadosDiv.innerHTML = `<p style="color: red;">ERRO: Não foi possível conectar ao servidor Flask. Certifique-se de que ele está rodando em http://127.0.0.1:5000.</p>`;
+                console.error('Erro ao buscar notícias:', error);
+            }
+        }
+    </script>
 </body>
 </html>
